@@ -42,13 +42,30 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (supportsLiveBackdropEffects()) {
                 LiquidGlassDemoApp()
             } else {
                 LiquidGlassCompatibilityApp()
             }
         }
     }
+}
+
+
+private fun supportsLiveBackdropEffects(): Boolean {
+    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isWaydroidEnvironment()
+}
+
+private fun isWaydroidEnvironment(): Boolean {
+    val buildFields = listOf(
+        Build.BRAND,
+        Build.DEVICE,
+        Build.HARDWARE,
+        Build.MANUFACTURER,
+        Build.MODEL,
+        Build.PRODUCT
+    )
+    return buildFields.any { field -> field.contains("waydroid", ignoreCase = true) }
 }
 
 @Composable
@@ -68,7 +85,7 @@ fun LiquidGlassCompatibilityApp() {
                 ActiveTabSummary(selectedTab)
                 FeatureCard(
                     "Android 11 compatibility mode",
-                    "This device uses a safe translucent Compose fallback. Install on Android 12+ to see live CMP Backdrop blur, lens, and vibrancy rendering."
+                    "This device uses a safe translucent Compose fallback. Physical Android 12+ devices show live CMP Backdrop blur, lens, and vibrancy rendering; Waydroid uses this mode for stability."
                 )
                 CompatGlassCard("Glass Bottom Bar", "Tinted surface over the same artwork, without runtime backdrop capture.")
                 CompatGlassCard("Interactive Glass Bottom Bar", "Simple pills preserve layout and readability on older devices.")
