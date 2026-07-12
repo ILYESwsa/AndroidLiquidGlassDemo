@@ -67,7 +67,7 @@ fun LiquidGlassDemoApp() {
                 GlassBottomSheet(combinedBackdrop)
                 GlassSlider(combinedBackdrop)
                 TintedGlassIconButton(combinedBackdrop)
-                FallbackGlass(emptyBackdrop)
+                FallbackGlass(emptyBackdrop())
             }
             GlassBottomBar(combinedBackdrop, selectedTab) { selectedTab = it }
         }
