@@ -54,6 +54,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun LiquidGlassCompatibilityApp() {
     MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF6D5DFB))) {
+        var selectedTab by remember { mutableIntStateOf(0) }
         Box(Modifier.fillMaxSize().background(Color(0xFFF8FAFF))) {
             DemoBackdropArt()
             Column(
@@ -64,6 +65,7 @@ fun LiquidGlassCompatibilityApp() {
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
                 Header()
+                ActiveTabSummary(selectedTab)
                 FeatureCard(
                     "Android 11 compatibility mode",
                     "This device uses a safe translucent Compose fallback. Install on Android 12+ to see live CMP Backdrop blur, lens, and vibrancy rendering."
@@ -74,7 +76,11 @@ fun LiquidGlassCompatibilityApp() {
                 CompatGlassCard("Glass Slider", "Compose-only track preview for Android 11.")
                 CompatGlassCard("Tinted glass icon button", "Hue-style pink tint represented with a safe translucent surface.")
             }
-            CompatBottomBar(Modifier.align(Alignment.BottomCenter).padding(20.dp))
+            CompatBottomBar(
+                selected = selectedTab,
+                onSelect = { selectedTab = it },
+                modifier = Modifier.align(Alignment.BottomCenter).padding(20.dp)
+            )
         }
     }
 }
@@ -95,7 +101,7 @@ private fun CompatGlassCard(title: String, body: String) {
 }
 
 @Composable
-private fun CompatBottomBar(modifier: Modifier = Modifier) {
+private fun CompatBottomBar(selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier
             .fillMaxWidth()
@@ -111,10 +117,11 @@ private fun CompatBottomBar(modifier: Modifier = Modifier) {
                     .weight(1f)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(22.dp))
-                    .background(if (index == 0) Color.White.copy(.54f) else Color.Transparent),
+                    .background(if (index == selected) Color.White.copy(.54f) else Color.Transparent)
+                    .clickable { onSelect(index) },
                 contentAlignment = Alignment.Center
             ) {
-                Text(label, fontWeight = if (index == 0) FontWeight.Bold else FontWeight.Medium)
+                Text(label, fontWeight = if (index == selected) FontWeight.Bold else FontWeight.Medium)
             }
         }
     }
@@ -138,6 +145,7 @@ fun LiquidGlassDemoApp() {
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
                 Header()
+                ActiveTabSummary(selectedTab)
                 FeatureCard("Glass Bottom Bar over a main nav host", "The host content is captured with rememberLayerBackdrop; the bar redraws that background with blur, lensing, vibrancy and a translucent tint.")
                 InteractiveGlassBottomBar(combinedBackdrop, selectedTab) { selectedTab = it }
                 GlassBottomSheet(combinedBackdrop)
@@ -147,6 +155,28 @@ fun LiquidGlassDemoApp() {
             }
             GlassBottomBar(combinedBackdrop, selectedTab) { selectedTab = it }
         }
+    }
+}
+
+
+@Composable
+private fun ActiveTabSummary(selectedTab: Int) {
+    val tabs = listOf(
+        "Home" to "A calm dashboard surface behind the glass navigation bar.",
+        "Glass" to "Backdrop-heavy examples that show blur, lensing, vibrancy, and tint.",
+        "Tune" to "Controls and sliders for exploring glass intensity and readability."
+    )
+    val (title, body) = tabs[selectedTab.coerceIn(tabs.indices)]
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .background(Color(0xFF111827).copy(.08f))
+            .padding(20.dp)
+    ) {
+        Text("Selected tab: $title", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color(0xFF101828))
+        Spacer(Modifier.height(6.dp))
+        Text(body, color = Color(0xFF475467))
     }
 }
 
