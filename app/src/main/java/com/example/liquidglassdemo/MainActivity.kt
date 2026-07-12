@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -53,19 +55,8 @@ class MainActivity : ComponentActivity() {
 
 
 private fun supportsLiveBackdropEffects(): Boolean {
-    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isWaydroidEnvironment()
-}
-
-private fun isWaydroidEnvironment(): Boolean {
-    val buildFields = listOf(
-        Build.BRAND,
-        Build.DEVICE,
-        Build.HARDWARE,
-        Build.MANUFACTURER,
-        Build.MODEL,
-        Build.PRODUCT
-    )
-    return buildFields.any { field -> field.contains("waydroid", ignoreCase = true) }
+    // CMP Backdrop live blur/lens/vibrancy is enabled for Android 12+ on both physical and emulated devices, including Waydroid Android 13.
+    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 }
 
 @Composable
@@ -84,8 +75,8 @@ fun LiquidGlassCompatibilityApp() {
                 Header()
                 ActiveTabSummary(selectedTab)
                 FeatureCard(
-                    "Android 11 compatibility mode",
-                    "This device uses a safe translucent Compose fallback. Physical Android 12+ devices show live CMP Backdrop blur, lens, and vibrancy rendering; Waydroid uses this mode for stability."
+                    "Liquid glass compatibility mode",
+                    "This Android 11 device uses a stable glass-styled fallback: translucent gradients, bright rims, tint, and soft depth. Android 12+ devices, including Waydroid Android 13, show live CMP Backdrop blur, lens, and vibrancy rendering."
                 )
                 CompatGlassCard("Glass Bottom Bar", "Tinted surface over the same artwork, without runtime backdrop capture.")
                 CompatGlassCard("Interactive Glass Bottom Bar", "Simple pills preserve layout and readability on older devices.")
@@ -102,13 +93,46 @@ fun LiquidGlassCompatibilityApp() {
     }
 }
 
+
+private fun Modifier.liquidGlassFallback(
+    shape: RoundedCornerShape,
+    tint: Color = Color.White
+): Modifier = this
+    .shadow(
+        elevation = 18.dp,
+        shape = shape,
+        ambientColor = Color(0xFF7C3AED).copy(.18f),
+        spotColor = Color(0xFF06B6D4).copy(.14f)
+    )
+    .clip(shape)
+    .background(
+        Brush.linearGradient(
+            listOf(
+                tint.copy(.64f),
+                Color.White.copy(.34f),
+                Color(0xFFD7E8FF).copy(.28f),
+                Color(0xFFFFD6E7).copy(.18f)
+            )
+        )
+    )
+    .border(
+        width = 1.dp,
+        brush = Brush.linearGradient(
+            listOf(
+                Color.White.copy(.92f),
+                Color.White.copy(.30f),
+                Color(0xFF8B5CF6).copy(.22f)
+            )
+        ),
+        shape = shape
+    )
+
 @Composable
 private fun CompatGlassCard(title: String, body: String) {
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
-            .background(Color.White.copy(.44f))
+            .liquidGlassFallback(RoundedCornerShape(28.dp), Color.White)
             .padding(22.dp)
     ) {
         Text(title, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color(0xFF101828))
@@ -123,8 +147,7 @@ private fun CompatBottomBar(selected: Int, onSelect: (Int) -> Unit, modifier: Mo
         modifier
             .fillMaxWidth()
             .height(72.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(Color.White.copy(.48f))
+            .liquidGlassFallback(RoundedCornerShape(28.dp), Color.White)
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -134,7 +157,24 @@ private fun CompatBottomBar(selected: Int, onSelect: (Int) -> Unit, modifier: Mo
                     .weight(1f)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(22.dp))
-                    .background(if (index == selected) Color.White.copy(.54f) else Color.Transparent)
+                    .background(
+                        if (index == selected) {
+                            Brush.linearGradient(
+                                listOf(
+                                    Color.White.copy(.78f),
+                                    Color(0xFFDDEBFF).copy(.52f),
+                                    Color(0xFFC7B7FF).copy(.28f)
+                                )
+                            )
+                        } else {
+                            Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
+                        }
+                    )
+                    .border(
+                        width = if (index == selected) 1.dp else 0.dp,
+                        brush = Brush.linearGradient(listOf(Color.White.copy(.90f), Color.White.copy(.24f))),
+                        shape = RoundedCornerShape(22.dp)
+                    )
                     .clickable { onSelect(index) },
                 contentAlignment = Alignment.Center
             ) {
@@ -187,8 +227,7 @@ private fun ActiveTabSummary(selectedTab: Int) {
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
-            .background(Color(0xFF111827).copy(.08f))
+            .liquidGlassFallback(RoundedCornerShape(28.dp), Color(0xFFE0EAFF))
             .padding(20.dp)
     ) {
         Text("Selected tab: $title", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color(0xFF101828))
