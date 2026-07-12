@@ -4,8 +4,26 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-android { namespace = "com.example.liquidglassdemo"; compileSdk = 36
-    defaultConfig { applicationId = "com.example.liquidglassdemo"; minSdk = 26; targetSdk = 36; versionCode = 1; versionName = "1.0" }
+android {
+    namespace = "com.example.liquidglassdemo"
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = "com.example.liquidglassdemo"
+        minSdk = 26
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
