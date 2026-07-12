@@ -1,5 +1,6 @@
 package com.example.liquidglassdemo
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -40,7 +41,82 @@ import com.kyant.backdrop.effects.vibrancy
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { LiquidGlassDemoApp() }
+        setContent {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                LiquidGlassDemoApp()
+            } else {
+                LiquidGlassCompatibilityApp()
+            }
+        }
+    }
+}
+
+@Composable
+fun LiquidGlassCompatibilityApp() {
+    MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF6D5DFB))) {
+        Box(Modifier.fillMaxSize().background(Color(0xFFF8FAFF))) {
+            DemoBackdropArt()
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp, 24.dp, 20.dp, 112.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                Header()
+                FeatureCard(
+                    "Android 11 compatibility mode",
+                    "This device uses a safe translucent Compose fallback. Install on Android 12+ to see live CMP Backdrop blur, lens, and vibrancy rendering."
+                )
+                CompatGlassCard("Glass Bottom Bar", "Tinted surface over the same artwork, without runtime backdrop capture.")
+                CompatGlassCard("Interactive Glass Bottom Bar", "Simple pills preserve layout and readability on older devices.")
+                CompatGlassCard("Glass Bottom Sheet", "Rounded translucent sheet with a visible blue tint.")
+                CompatGlassCard("Glass Slider", "Compose-only track preview for Android 11.")
+                CompatGlassCard("Tinted glass icon button", "Hue-style pink tint represented with a safe translucent surface.")
+            }
+            CompatBottomBar(Modifier.align(Alignment.BottomCenter).padding(20.dp))
+        }
+    }
+}
+
+@Composable
+private fun CompatGlassCard(title: String, body: String) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .background(Color.White.copy(.44f))
+            .padding(22.dp)
+    ) {
+        Text(title, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color(0xFF101828))
+        Spacer(Modifier.height(8.dp))
+        Text(body, color = Color(0xFF475467))
+    }
+}
+
+@Composable
+private fun CompatBottomBar(modifier: Modifier = Modifier) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .height(72.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(Color.White.copy(.48f))
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf("Home", "Glass", "Tune").forEachIndexed { index, label ->
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(if (index == 0) Color.White.copy(.54f) else Color.Transparent),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(label, fontWeight = if (index == 0) FontWeight.Bold else FontWeight.Medium)
+            }
+        }
     }
 }
 
