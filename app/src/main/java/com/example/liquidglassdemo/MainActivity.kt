@@ -44,23 +44,47 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            if (supportsLiveBackdropEffects()) {
+            var useLiveBackdrop by remember { mutableStateOf(shouldStartWithLiveBackdropEffects()) }
+            if (useLiveBackdrop && canUseLiveBackdropEffects()) {
                 LiquidGlassDemoApp()
             } else {
-                LiquidGlassCompatibilityApp()
+                LiquidGlassCompatibilityApp(
+                    canTryLiveBackdrop = canUseLiveBackdropEffects(),
+                    onTryLiveBackdrop = { useLiveBackdrop = true }
+                )
             }
         }
     }
 }
 
 
-private fun supportsLiveBackdropEffects(): Boolean {
-    // CMP Backdrop live blur/lens/vibrancy is enabled for Android 12+ on both physical and emulated devices, including Waydroid Android 13.
+private fun canUseLiveBackdropEffects(): Boolean {
     return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 }
 
+private fun shouldStartWithLiveBackdropEffects(): Boolean {
+    // Waydroid's graphics stack can terminate the process while initializing live backdrop effects.
+    // Start Waydroid in the stable glass fallback, then let the user opt in to live CMP rendering.
+    return canUseLiveBackdropEffects() && !isWaydroidEnvironment()
+}
+
+private fun isWaydroidEnvironment(): Boolean {
+    val buildFields = listOf(
+        Build.BRAND,
+        Build.DEVICE,
+        Build.HARDWARE,
+        Build.MANUFACTURER,
+        Build.MODEL,
+        Build.PRODUCT
+    )
+    return buildFields.any { field -> field.contains("waydroid", ignoreCase = true) }
+}
+
 @Composable
-fun LiquidGlassCompatibilityApp() {
+fun LiquidGlassCompatibilityApp(
+    canTryLiveBackdrop: Boolean = false,
+    onTryLiveBackdrop: () -> Unit = {}
+) {
     MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF6D5DFB))) {
         var selectedTab by remember { mutableIntStateOf(0) }
         Box(Modifier.fillMaxSize().background(Color(0xFFF8FAFF))) {
@@ -76,8 +100,13 @@ fun LiquidGlassCompatibilityApp() {
                 ActiveTabSummary(selectedTab)
                 FeatureCard(
                     "Liquid glass compatibility mode",
-                    "This Android 11 device uses a stable glass-styled fallback: translucent gradients, bright rims, tint, and soft depth. Android 12+ devices, including Waydroid Android 13, show live CMP Backdrop blur, lens, and vibrancy rendering."
+                    "This device starts in a stable glass-styled fallback when live backdrop rendering may crash the graphics stack. On Android 12+ / Waydroid Android 13 you can opt in to the real CMP Backdrop blur, lens, and vibrancy demo."
                 )
+                if (canTryLiveBackdrop) {
+                    Button(onClick = onTryLiveBackdrop, modifier = Modifier.fillMaxWidth()) {
+                        Text("Try live CMP Backdrop effects")
+                    }
+                }
                 CompatGlassCard("Glass Bottom Bar", "Tinted surface over the same artwork, without runtime backdrop capture.")
                 CompatGlassCard("Interactive Glass Bottom Bar", "Simple pills preserve layout and readability on older devices.")
                 CompatGlassCard("Glass Bottom Sheet", "Rounded translucent sheet with a visible blue tint.")

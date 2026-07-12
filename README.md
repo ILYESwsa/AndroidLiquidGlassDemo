@@ -14,4 +14,4 @@ This sample uses `io.github.kyant0:backdrop:1.0.6`, which is compatible with the
 
 ## Runtime compatibility
 
-Android 11 runs a Compose-only liquid-glass-styled fallback for stability, using translucent gradients, bright rims, tint, and soft depth. Android 12+ devices, including Waydroid Android 13, use live CMP Backdrop blur, lens, vibrancy, and tint effects.
+Android 11 runs a Compose-only liquid-glass-styled fallback for stability. Android 12+ devices can use live CMP Backdrop blur, lens, vibrancy, and tint effects. Waydroid Android 13 starts in the stable fallback because its graphics stack can terminate apps during live backdrop initialization, but the app includes a button to try the live CMP Backdrop demo from inside the fallback screen.
